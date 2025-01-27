@@ -84,5 +84,4 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 3.In the Project Folder type "npm install"
 4.After all the installation is completed run "npm run dev"
 
-NOTE: THIS PROJECT USES VITE TO CREATE REACT APP , TO CREATE REACT APP USING VITE TYPE "npm create vite@latest"
 
