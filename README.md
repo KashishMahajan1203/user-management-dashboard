@@ -1,5 +1,7 @@
 # USER MANAGEMENT DASHBOARD
 The User Management Dashboard is designed to manage users efficiently, providing features such as user creation, deletion, updating user details, and viewing user lists. As users search for specific entries in the User Details tab, information obtained from the database (JSON File) will be displayed in a searchable table format in the User Details tab.
+# Instructions
+switch branch from main to master.
 
 # Features
 1. Responsive
