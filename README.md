@@ -1,3 +1,11 @@
+# USER MANAGEMENT DASHBOARD
+The User Management Dashboard is designed to manage users efficiently, providing features such as user creation, deletion, updating user details, and viewing user lists. As users search for specific entries in the User Details tab, information obtained from the database (JSON File) will be displayed in a searchable table format in the User Details tab.
+
+# Features
+1. Responsive
+2. User Friendly Design
+3. Functional and Clean Design
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -68,3 +76,13 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+# Installation
+1.Download Zip Code from the Github repositry
+2.Make Sure you have Node and Npm installed
+3.In the Project Folder type "npm install"
+4.After all the installation is completed run "npm run dev"
+
+NOTE: THIS PROJECT USES VITE TO CREATE REACT APP , TO CREATE REACT APP USING VITE TYPE "npm create vite@latest"
+
