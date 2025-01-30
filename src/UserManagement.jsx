@@ -1,97 +1,80 @@
 import React, { useState, useEffect } from "react";
-import './style.css'
+import "./style.css";
 import Swal from "sweetalert2";
 
 const initialValues = {
   addModal: { name: "", email: "", phone: "" },
-  editModal: { name: "", email: "", phone: "" }
+  editModal: { _id: "", name: "", email: "", phone: "" }
 };
 
 const UserManagement = () => {
-  // App States
-  const [show, setShow] = useState({
-    addModal: false,
-    editModal: false
-  });
+  // State Management
+  const [show, setShow] = useState({ addModal: false, editModal: false });
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
   const [userDetails, setUserDetails] = useState(initialValues);
 
-  // Handling Display Modals
+  // Handle Modal Display
   const handleDisplayModal = (modal) => {
-    if (show[modal]) return setShow({ ...show, [modal]: false });
-    setShow({ ...show, [modal]: true });
+    setShow((prev) => ({ ...prev, [modal]: !prev[modal] }));
   };
 
-  // Handling Input Changes
+  // Handle Input Change
   const handleInputChange = (e, modal) => {
     const { name, value } = e.target;
-    setUserDetails({
-      ...userDetails,
-      [modal]: {
-        ...userDetails[modal],
-        [name]: value
-      }
-    });
+    setUserDetails((prev) => ({
+      ...prev,
+      [modal]: { ...prev[modal], [name]: value }
+    }));
   };
 
-  // Handling Getting Users
+  // Fetch Users from API
   const gettingUsers = async () => {
     try {
       const response = await fetch("https://user-dummy-api.onrender.com/users");
+      if (!response.ok) throw new Error("Failed to fetch users");
       const data = await response.json();
       setUsers(data);
-      setLoading(false);
     } catch (error) {
-      console.log(error);
+      Swal.fire({ title: "Error!", text: error.message, icon: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handling Values of Selected User
+  // Select User for Editing
   const setSelectedUser = (selectedUserID) => {
-    setUserDetails({
-      ...userDetails,
-      editModal: users.find((user) => {
-        if (user._id === selectedUserID)
-          return {
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            phone: user.phone
-          };
-      })
-    });
+    const selectedUser = users.find((user) => user._id === selectedUserID);
+    if (selectedUser) {
+      setUserDetails((prev) => ({
+        ...prev,
+        editModal: { ...selectedUser }
+      }));
+    }
   };
 
-  // Handling Adding the new User to the Server
+  // Add New User
   const handleAddUser = async () => {
     try {
-      const response = await fetch(
-        "https://user-dummy-api.onrender.com/users",
-        {
-          method: "POST",
-          body: JSON.stringify(userDetails.addModal),
-          headers: {
-            "Content-Type": "application/json"
-          }
-        }
-      );
+      const response = await fetch("https://user-dummy-api.onrender.com/users", {
+        method: "POST",
+        body: JSON.stringify(userDetails.addModal),
+        headers: { "Content-Type": "application/json" }
+      });
+
       if (response.status === 201) {
+        Swal.fire({ title: "User Added Successfully", icon: "success" });
         handleDisplayModal("addModal");
-        Swal.fire({
-          title: "User Added Successfully",
-          icon: "success"
-        });
         setLoading(true);
         gettingUsers();
         setUserDetails(initialValues);
       }
     } catch (error) {
-      console.log(error);
+      Swal.fire({ title: "Error!", text: error.message, icon: "error" });
     }
   };
 
-  // Handling Updates of Selected User to the Server
+  // Update Existing User
   const handleUpdateUser = async () => {
     try {
       const response = await fetch(
@@ -99,292 +82,115 @@ const UserManagement = () => {
         {
           method: "PUT",
           body: JSON.stringify(userDetails.editModal),
-          headers: {
-            "Content-Type": "application/json"
-          }
+          headers: { "Content-Type": "application/json" }
         }
       );
 
       if (response.status === 200) {
+        Swal.fire({ title: "User Updated Successfully", icon: "success" });
         handleDisplayModal("editModal");
-        Swal.fire({
-          title: "User Updated Successfully",
-          icon: "success"
-        });
         setLoading(true);
         gettingUsers();
       }
     } catch (error) {
-      console.log(error);
+      Swal.fire({ title: "Error!", text: error.message, icon: "error" });
     }
   };
 
-  // Handling Deleting the Selected User from the Server
+  // Delete User
   const userDelete = async (selectedUserID) => {
     try {
       const response = await fetch(
         `https://user-dummy-api.onrender.com/users/${selectedUserID}`,
-        {
-          method: "DELETE"
-        }
+        { method: "DELETE" }
       );
 
       if (response.status === 200) {
-        Swal.fire({
-          title: "User Deleted Successfully",
-          icon: "success"
-        });
+        Swal.fire({ title: "User Deleted Successfully", icon: "success" });
         setLoading(true);
         gettingUsers();
       }
     } catch (error) {
-      console.log(error);
+      Swal.fire({ title: "Error!", text: error.message, icon: "error" });
     }
   };
 
-  // Fetching Data the from the server
+  // Fetch Data on Component Mount
   useEffect(() => {
-    gettingUsers();
-  }, []);
+    if (loading) gettingUsers();
+  }, [loading]);
 
   return (
-    <>
-      <section className={`main ${loading ? "loading" : ""}`}>
-        <div className="container">
-          <div className="row">
-            <h3 className="text-center mt-3">User Management Dashboard</h3>
-          </div>
-          <div className="row mb-4">
-            <div className="col-5">
-              <button
-                type="button"
-                className="card"
-                onClick={() => {
-                  handleDisplayModal("addModal");
-                }}
-              >
-                <div className="card-body py-3">
-                  <div className="d-flex align-items-center ">
-                    <i className="bi bi-plus-circle"></i>
-                    <h5 className="ms-4 pt-2">Add User</h5>
-                  </div>
-                </div>
-              </button>
+    <section className={`main ${loading ? "loading" : ""}`}>
+      <div className="container">
+        <h3 className="text-center mt-3">User Management Dashboard</h3>
+        <button className="btn btn-success mb-3" onClick={() => handleDisplayModal("addModal")}>
+          Add User
+        </button>
+        
+        {/* User Table */}
+        <table className="table table-striped table-bordered">
+          <thead>
+            <tr>
+              <th>S.No</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((user, index) => (
+              <tr key={user._id}>
+                <td>{index + 1}</td>
+                <td>{user.name}</td>
+                <td>{user.email}</td>
+                <td>{user.phone}</td>
+                <td>
+                  <button className="btn btn-primary me-2" onClick={() => { setSelectedUser(user._id); handleDisplayModal("editModal"); }}>
+                    Edit
+                  </button>
+                  <button className="btn btn-danger" onClick={() => userDelete(user._id)}>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Add User Modal */}
+        {show.addModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h5>Add User</h5>
+              <input type="text" name="name" placeholder="Name" value={userDetails.addModal.name} onChange={(e) => handleInputChange(e, "addModal")} />
+              <input type="email" name="email" placeholder="Email" value={userDetails.addModal.email} onChange={(e) => handleInputChange(e, "addModal")} />
+              <input type="text" name="phone" placeholder="Phone" value={userDetails.addModal.phone} onChange={(e) => handleInputChange(e, "addModal")} />
+              <button onClick={handleAddUser}>Add</button>
+              <button onClick={() => handleDisplayModal("addModal")}>Close</button>
             </div>
           </div>
-          <div className="row">
-            <div className="col-lg-12 ">
-              <table className="table table-striped table-bordered">
-                <thead>
-                  <tr>
-                    <th scope="col">S.No</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Email</th>
-                    <th scope="col">Phone</th>
-                    <th scope="col">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user, index) => (
-                    <tr key={user._id}>
-                      <th scope="row">{index + 1}</th>
-                      <td>{user.name}</td>
-                      <td>{user.email}</td>
-                      <td>{user.phone}</td>
-                      <td>
-                        <button
-                          type="button"
-                          className="btn btn-primary px-2 me-2"
-                          onClick={() => {
-                            setSelectedUser(user._id);
-                            handleDisplayModal("editModal");
-                          }}
-                        >
-                          <i className="bi bi-pencil"></i>
-                        </button>
+        )}
 
-                        <button
-                          className="btn btn-danger px-2"
-                          onClick={() => userDelete(user._id)}
-                        >
-                          <i className="bi bi-trash"></i>
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              {/* User Add Modal */}
-              {show.addModal && (
-                <div
-                  className={`modal-overlay ${show.addModal ? "show" : "hide"}`}
-                >
-                  <div className="modal-dialog">
-                    <div className="modal-content">
-                      <div className="modal-header">
-                        <h1 className="modal-title fs-5" id="userAddLabel">
-                          Add User
-                        </h1>
-                        <button
-                          type="button"
-                          className="btn-close"
-                          onClick={() => handleDisplayModal("addModal")}
-                        ></button>
-                      </div>
-                      <div className="modal-body">
-                        <div>
-                          <div className="input-group mb-3">
-                            <input
-                              type="text"
-                              className="form-control"
-                              placeholder="Enter Name"
-                              aria-label="name"
-                              name="name"
-                              value={userDetails.addModal.name}
-                              onChange={(e) => handleInputChange(e, "addModal")}
-                            />
-                          </div>
-
-                          <div className="input-group mb-3">
-                            <input
-                              type="email"
-                              className="form-control"
-                              placeholder="Enter Email"
-                              aria-label="email"
-                              name="email"
-                              value={userDetails.addModal.email}
-                              onChange={(e) => handleInputChange(e, "addModal")}
-                            />
-                          </div>
-
-                          <div className="input-group mb-3">
-                            <input
-                              type="text"
-                              className="form-control"
-                              placeholder="Enter Phone"
-                              aria-label="phone"
-                              name="phone"
-                              value={userDetails.addModal.phone}
-                              onChange={(e) => handleInputChange(e, "addModal")}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="modal-footer">
-                        <button
-                          type="button"
-                          className="btn btn-secondary me-4"
-                          onClick={() => handleDisplayModal("addModal")}
-                        >
-                          Close
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-primary"
-                          onClick={handleAddUser}
-                        >
-                          Add User
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* User Edit Modal */}
-              {show.editModal && (
-                <div
-                  className={`modal-overlay ${
-                    show.editModal ? "show" : "hide"
-                  }`}
-                >
-                  <div className="modal-dialog">
-                    <div className="modal-content">
-                      <div className="modal-header">
-                        <h1 className="modal-title fs-5" id="userEditLabel">
-                          Edit User
-                        </h1>
-                        <button
-                          type="button"
-                          className="btn-close"
-                          onClick={() => handleDisplayModal("editModal")}
-                        ></button>
-                      </div>
-                      <div className="modal-body">
-                        <div>
-                          <div className="input-group mb-3">
-                            <input
-                              type="text"
-                              className="form-control"
-                              placeholder="Enter Name"
-                              aria-label="name"
-                              name="name"
-                              value={userDetails.editModal.name}
-                              onChange={(e) =>
-                                handleInputChange(e, "editModal")
-                              }
-                            />
-                          </div>
-
-                          <div className="input-group mb-3">
-                            <input
-                              type="email"
-                              className="form-control"
-                              placeholder="Enter Email"
-                              aria-label="email"
-                              name="email"
-                              value={userDetails.editModal.email}
-                              onChange={(e) =>
-                                handleInputChange(e, "editModal")
-                              }
-                            />
-                          </div>
-
-                          <div className="input-group mb-3">
-                            <input
-                              type="text"
-                              className="form-control"
-                              placeholder="Enter Phone"
-                              aria-label="phone"
-                              name="phone"
-                              value={userDetails.editModal.phone}
-                              onChange={(e) =>
-                                handleInputChange(e, "editModal")
-                              }
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="modal-footer">
-                        <button
-                          type="button"
-                          className="btn btn-secondary close me-4"
-                          aria-label="Close"
-                          onClick={() => handleDisplayModal("editModal")}
-                        >
-                          Close
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-primary"
-                          onClick={handleUpdateUser}
-                        >
-                          Save changes
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+        {/* Edit User Modal */}
+        {show.editModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h5>Edit User</h5>
+              <input type="text" name="name" placeholder="Name" value={userDetails.editModal.name} onChange={(e) => handleInputChange(e, "editModal")} />
+              <input type="email" name="email" placeholder="Email" value={userDetails.editModal.email} onChange={(e) => handleInputChange(e, "editModal")} />
+              <input type="text" name="phone" placeholder="Phone" value={userDetails.editModal.phone} onChange={(e) => handleInputChange(e, "editModal")} />
+              <button onClick={handleUpdateUser}>Save</button>
+              <button onClick={() => handleDisplayModal("editModal")}>Close</button>
             </div>
           </div>
-        </div>
-        <div className="backdrop">
-          <div className="spinner-border text-primary" role="status"></div>
-        </div>
-      </section>
-    </>
+        )}
+      </div>
+
+      {/* Loading Spinner */}
+      {loading && <div className="backdrop"><div className="spinner-border text-primary"></div></div>}
+    </section>
   );
 };
 
